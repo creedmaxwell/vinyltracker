@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, g
-from db import UsersDB
+from db import UsersDB, VinylDB
 from passlib.hash import bcrypt
 from session_store import SessionStore
 
@@ -47,6 +47,12 @@ def after_request_function(response):
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
 
+@app.after_request
+def save_session(response):
+    if hasattr(g, 'session_id') and hasattr(g, 'session_data'):
+        session_store.save_session_data(g.session_id, g.session_data)
+    return response
+
 @app.route("/sessions", methods=["GET"])
 def retrieveSession():
     return {
@@ -58,99 +64,53 @@ def retrieveSession():
 def validate_user():
     username = request.form["username"]
     password = request.form["password"]
-    db = UsersDB('artists.db')
+    db = UsersDB('trackerdb.db')
     if db.validatePassword(username, password):
         print("Valid")
         g.session_data["user_id"] = username
+        session_store.save_session_data(g.session_id, g.session_data)
         return jsonify({"message": f"Valid {username}"}), 200, {"Access-Control-Allow-Origin": "*"}
     else:
         print("Not valid")
         return jsonify({"error": "Invalid credentials"}), 401, {"Access-Control-Allow-Origin": "*"}
     
-#artist methods
+#vinyl methods
 
-@app.route('/artists', methods=["GET"])
-def get_artists():
-    db = ArtistsDB("artists.db")
+@app.route('/vinyl', methods=["GET"])
+def get_user_vinyl():
+    db = VinylDB("trackerdb.db")
+    print("VINYL GET: ")
+    print(g.session_data)
     if "user_id" not in g.session_data:
         print("They are not authenticated")
         return jsonify({"error": "Unauthenticated"}), 401, {"Access-Control-Allow-Origin": "*"}
-    print(request.headers)
-    allRecords = db.readAllArtistRecords()
+    #print(request.headers)
+    allRecords = db.readAllVinylRecords(g.session_data["user_id"])
     return jsonify(allRecords), 200, {"Access-Control-Allow-Origin": "*"}
 
-@app.route('/artists', methods=["POST"])
-def add_new_artist():
+@app.route('/vinyl', methods=["POST"])
+def add_new_vinyl():
     if "user_id" not in g.session_data:
         print("User is not logged in")
         return jsonify({"error": "Unauthenticated"}), 401, {"Access-Control-Allow-Origin": "*"}
     
-    db = ArtistsDB("artists.db")
+    db = VinylDB("trackerdb.db")
     print("The form data is: ", request.form)
-    name = request.form["name"]
-    rating = request.form["rating"]
-    genre = request.form["genre"]
-    description = request.form["description"]
+    barcode = request.form["barcode"]
+    user_id = g.session_data["user_id"]
 
-    db.saveArtistRecord(name, rating, genre, description)
+    db.saveVinylRecord(barcode, user_id)
     return "Created", 201, {"Access-Control-Allow-Origin": "*"}
-
-#song methods
-
-@app.route('/songs/<artist_name>', methods=["GET"])
-def get_songs(artist_name):
-    db = ArtistsDB("artists.db")
-    allSongs = db.readAllSongRecords(artist_name)
-    artistSongs = [song for song in allSongs if song.get("artist") == artist_name]
-    return jsonify(artistSongs), 200, {"Access-Control-Allow-Origin": "*"}
-
-@app.route('/songs', methods=["POST"])
-def add_new_song():
-    db = ArtistsDB("artists.db")
-    print("The form data is: ", request.form)
-    artist = request.form["artist"]
-    song = request.form["song"]
-    rating = request.form["rating"]
-    description = request.form["description"]
-    
-    db.saveSongRecord(song, artist, description, rating)
-    return "Created", 201, {"Access-Control-Allow-Origin": "*"}
-
-@app.route('/songs/<int:id>', methods = ["OPTIONS"])
-def do_preflight(id):
-    print("This is the preflight")
-
-    return '', 204, {"Access-Control-Allow-Origin": "*", 
-                     "Access-Control-Allow-Methods": "PUT, DELETE", 
-                     "Access-Control-Allow-Headers": "Content-Type"}
-
-@app.route('/songs/<int:id>', methods=["DELETE"])
-def delete_trail(id):
-    db = ArtistsDB("artists.db")
-    db.deleteSongRecord(id)
-    return "Record Deleted", 200, {"Access-Control-Allow-Origin": "*"}
-
-@app.route("/songs/<int:id>", methods = ["PUT"])
-def update_trail(id):
-    db = ArtistsDB("artists.db")
-    name = request.form["name"]
-    rating = request.form["rating"]
-    description = request.form["description"]
-    db.updateSongRecord(id, name, description, rating)
-    return "Saved", 201, {"Access-Control-Allow-Origin": "*"}
 
 # user registration
 @app.route('/users', methods=["POST"])
 def add_new_user():
-    db = UsersDB("artists.db")
+    db = UsersDB("trackerdb.db")
     print("The form data is: ", request.form)
-    firstname = request.form["firstname"]
-    lastname = request.form["lastname"]
     username = request.form["username"]
-    email = request.form["email"]
     password = request.form["password"]
 
-    db.saveRecord(firstname, lastname, username, email, password)
+    db.saveRecord(username, password)
     return "Created", 201, {"Access-Control-Allow-Origin": "*"}
 
 @app.route("/sessions", methods=["DELETE"])

@@ -1,6 +1,35 @@
+function process_register(){
+    let userPicker = document.querySelector("#register-username")
+    let passPicker = document.querySelector("#register-password")
+    let data = "username=" + encodeURIComponent(userPicker.value)
+    data += "&password=" + encodeURIComponent(passPicker.value)
+    fetch("http://localhost:8080/users", {
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method: "POST",
+        body: data,
+    })
+    .then(function(response){
+        if (response.status === 201 || response.status === 200){
+            // Registration successful, now log in automatically
+            // Set the login fields and call process_login
+            document.querySelector("#login-username").value = userPicker.value;
+            document.querySelector("#login-password").value = passPicker.value;
+            process_login();
+        } else {
+            return response.json().then(err => { throw new Error(err.error || "Registration failed"); });
+        }
+    })
+    .catch(function(error) {
+        console.error("Registration failed:", error.message);
+        alert("Registration failed. " + error.message);
+    });
+}
+
 function process_login(){
-    let userPicker = document.querySelector("#usernameLog")
-    let passPicker = document.querySelector("#passwordLog")
+    let userPicker = document.querySelector("#login-username")
+    let passPicker = document.querySelector("#login-password")
     let data = "username=" + encodeURIComponent(userPicker.value)
     data += "&password=" + encodeURIComponent(passPicker.value)
     fetch("http://localhost:8080/sessions/auth", {
@@ -22,10 +51,14 @@ function process_login(){
     })
     .then(function(data) {
         console.log("Login successful:", data);
-        createSessionID(); // Fetch session data after login
+        document.querySelector("#login-container").style.display = "none"
+        document.getElementById("main-app").style.display = "block"
+        displayUserCollection()
+        /*
         let loginbtn = document.querySelector("#loginBtn")
         loginbtn.innerHTML = "Logout"
         loginbtn.onclick = process_logout
+        */
     })
     .catch(function(error) {
         console.error("Login failed:", error.message);
@@ -44,7 +77,7 @@ function process_logout(){
     .then(function(response){
         if (response.status == 200){
             alert("Logging out")
-            document.querySelector("section").innerHTML = ""
+            //document.querySelector("section").innerHTML = ""
             let loginbtn = document.querySelector("#loginBtn")
             loginbtn.innerHTML = "Login"
             loginbtn.onclick = openLoginModal
@@ -83,12 +116,22 @@ function createSessionID(){
         localStorage.setItem('sessionID', session.id)
         console.log("Session data:", session)
         if (session.data) {
-            show_artists();
+            //show_artists();
         }
     })
     .catch(function(error) {
         console.error("Error creating session:", error.message);
     });
+}
+
+function displayRegister(){
+    document.getElementById("login-container").style.display = "none"
+    document.getElementById("register-container").style.display = "flex"
+}
+
+function displayLogin(){
+    document.getElementById("register-container").style.display = "none"
+    document.getElementById("login-container").style.display = "flex"
 }
 
 createSessionID()

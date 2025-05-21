@@ -23,10 +23,10 @@ class UsersDB:
         self.conn.row_factory = dict_factory
         self.cursor = self.conn.cursor()
 
-    def saveRecord(self, firstname, lastname, username, email, password):
+    def saveRecord(self, username, password):
         password = bcrypt.hash(password)
-        data = [firstname, lastname, username, email, password]
-        cmd = "INSERT INTO users (firstname, lastname, username, email, password) VALUES (?, ?, ?, ?, ?)"
+        data = [username, password]
+        cmd = "INSERT INTO users (username, password) VALUES (?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
@@ -67,26 +67,26 @@ class VinylDB:
         self.conn.row_factory = dict_factory
         self.cursor = self.conn.cursor()
 
-    def saveVinylRecord(self, name, rating, genre, description):
-        data = [name, rating, genre, description]
-        cmd = "INSERT INTO artists (artist, rating, genre, description) VALUES (?, ?, ?, ?)"
+    def saveVinylRecord(self, barcode, user_id):
+        data = [barcode, user_id]
+        cmd = "INSERT INTO vinyl (barcode, user_id) VALUES (?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
-    def readAllVinylRecords(self):
-        cmd = "SELECT * FROM artists"
-        self.cursor.execute(cmd)
-        artists = self.cursor.fetchall()
-        return artists
+    def readAllVinylRecords(self, user_id):
+        cmd = "SELECT * FROM vinyl WHERE user_id = ?"
+        self.cursor.execute(cmd, [user_id])
+        vinyl = self.cursor.fetchall()
+        return vinyl
     
     def deleteVinylRecord(self, id):
        data = [id]
-       cmd = "DELETE FROM artists WHERE id = ?"
+       cmd = "DELETE FROM vinyl WHERE id = ?"
        self.cursor.execute(cmd, data)
        self.conn.commit()
 
-    def updateVinylRecord(self, id, name, description, rating, genre):
-       data = [name, description, rating, genre, id]
-       cmd = "UPDATE artists SET artist = ?, description = ?, rating = ?, genre = ? WHERE id = ?"
+    def updateVinylRecord(self, id, barcode):
+       data = [barcode, id]
+       cmd = "UPDATE vinyl SET barcode = ? WHERE id = ?"
        self.cursor.execute(cmd, data)
        self.conn.commit()

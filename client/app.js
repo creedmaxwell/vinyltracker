@@ -1,3 +1,24 @@
+// display all user's saved records
+function displayUserCollection(){
+    console.log("displaying user collection")
+    fetch("http://localhost:8080/vinyl", {
+        headers:{
+            "Authorization": authorizationHeader()
+        }
+    })
+    .then(response => response.json())
+    .then(function (data) {
+        console.log(data)
+        data.forEach(entry => {
+            fetchBarcode(entry.barcode)
+        })
+    })
+    .catch(error =>{
+        console.error("Error fetching collection:", error)
+    })
+}
+
+// submit
 let resourceURL = ""
 let token = 'MWfUKFbFxCTMlxIxSXnEUIxGpNrNSJoMlHutkiIv'
 
@@ -11,7 +32,17 @@ function submitBarcode(){
             fetchBarcode(barcode)
         }
     } else {
-        fetchBarcode(barcode)
+        const success = fetchBarcode(barcode)
+        if (success){
+            fetch('http://localhost:8080/vinyl', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Authorization': authorizationHeader()
+                        },
+                        body: `barcode=${encodeURIComponent(barcode)}`
+                    })
+        }
     }
 }
 
@@ -39,6 +70,8 @@ function fetchBarcode(barcode){
                 div.appendChild(cover)
                 div.appendChild(title)
                 collection.appendChild(div)
+
+                return true
 
             } else {
                 collection.innerHTML = "No results found.";
