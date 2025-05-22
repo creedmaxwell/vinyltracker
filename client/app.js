@@ -23,7 +23,7 @@ let resourceURL = ""
 let token = 'MWfUKFbFxCTMlxIxSXnEUIxGpNrNSJoMlHutkiIv'
 
 function submitBarcode(){
-    let barcode = document.querySelector("#barcode-input").value
+    let barcode = document.querySelector("#barcode-input").value.replaceAll(' ', '')
     document.querySelector("#barcode-input").value = ""
 
     let existingRecord = document.getElementById(barcode.replaceAll(' ', ''))
@@ -32,24 +32,25 @@ function submitBarcode(){
             fetchBarcode(barcode)
         }
     } else {
-        const success = fetchBarcode(barcode)
-        if (success){
-            fetch('http://localhost:8080/vinyl', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'Authorization': authorizationHeader()
-                        },
-                        body: `barcode=${encodeURIComponent(barcode)}`
-                    })
-        }
+        fetchBarcode(barcode).then(success => {
+            if (success){
+                fetch('http://localhost:8080/vinyl', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Authorization': authorizationHeader()
+                            },
+                            body: `barcode=${encodeURIComponent(barcode)}`
+                        })
+            }
+        })
     }
 }
 
 function fetchBarcode(barcode){
     let collection = document.querySelector("#collection-div")
 
-    fetch(`https://api.discogs.com/database/search?barcode=${encodeURIComponent(barcode)}&token=${token}`)
+    return fetch(`https://api.discogs.com/database/search?barcode=${encodeURIComponent(barcode)}&token=${token}`)
         .then(response => response.json())
         .then(data => {
             if (data.results && data.results.length > 0) {
@@ -62,7 +63,7 @@ function fetchBarcode(barcode){
 
                 div.className = "release-div"
                 //div.id = release.title.replaceAll(' ', '')
-                div.id = barcode.replaceAll(' ', '')
+                div.id = barcode
                 div.onclick = displayAlbum
                 title.innerHTML = release.title
                 cover.src = release.cover_image
@@ -75,16 +76,36 @@ function fetchBarcode(barcode){
 
             } else {
                 collection.innerHTML = "No results found.";
+                return false
             }
         })
         .catch(err => {
             collection.innerText = "Error fetching data.";
             console.error(err);
+            return false
         });
 }
 
 let submitBtn = document.querySelector("#submit-btn")
 submitBtn.onclick = submitBarcode
+
+function deleteVinyl(barcode) {
+    //barcode = this.id
+    fetch(`http://localhost:8080/vinyl?barcode=${encodeURIComponent(barcode)}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": authorizationHeader()
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            document.getElementById("overlay").style.display = "none"
+            document.getElementById(barcode + "-tracklist").remove()
+            document.getElementById(barcode).remove()
+        }
+    })
+    .catch(error => console.error("Error deleting vinyl:", error))
+}
 
 // album click
 // pulls up screen that displays track list and any other important information about the record
@@ -164,6 +185,13 @@ function displayAlbum(){
 
                                 formatP.innerHTML = formatP.innerHTML.replace(/ - $/, '')
 
+                                // delete btn
+                                let deleteBtn = document.createElement("button")
+                                deleteBtn.innerHTML = "DELETE"
+                                deleteBtn.className = "delete-button"
+                                deleteBtn.onclick = () => deleteVinyl(barcode)
+
+                                // tracklist
                                 let ul = document.createElement("ul");
                                 releaseData.tracklist.forEach(track => {
                                     let li = document.createElement("li");
@@ -183,6 +211,7 @@ function displayAlbum(){
                                 leftCol.appendChild(albumTitle)
                                 leftCol.appendChild(artistName)
                                 leftCol.appendChild(formatP)
+                                leftCol.appendChild(deleteBtn)
 
                                 let rightCol = document.createElement("div")
                                 rightCol.className = "right-column"

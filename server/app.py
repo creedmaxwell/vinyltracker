@@ -102,6 +102,22 @@ def add_new_vinyl():
     db.saveVinylRecord(barcode, user_id)
     return "Created", 201, {"Access-Control-Allow-Origin": "*"}
 
+@app.route('/vinyl', methods=["DELETE"])
+def delete_vinyl():
+    if "user_id" not in g.session_data:
+        print("User is not logged in")
+        return jsonify({"error": "Unauthenticated"}), 401, {"Access-Control-Allow-Origin": "*"}
+    
+    db = VinylDB("trackerdb.db")
+    barcode = request.args.get("barcode")
+    if not barcode:
+        return jsonify({"error": "No barcode provided"}), 400
+    
+    user_id = g.session_data["user_id"]
+
+    db.deleteVinylRecord(barcode, user_id)
+    return "", 204, {"Access-Control-Allow-Origin": "*"}
+
 # user registration
 @app.route('/users', methods=["POST"])
 def add_new_user():

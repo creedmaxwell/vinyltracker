@@ -79,9 +79,9 @@ class VinylDB:
         vinyl = self.cursor.fetchall()
         return vinyl
     
-    def deleteVinylRecord(self, id):
-       data = [id]
-       cmd = "DELETE FROM vinyl WHERE id = ?"
+    def deleteVinylRecord(self, barcode, user_id):
+       data = [barcode, user_id]
+       cmd = "DELETE FROM vinyl WHERE ( barcode = ? AND user_id = ? )"
        self.cursor.execute(cmd, data)
        self.conn.commit()
 
