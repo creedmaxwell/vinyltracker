@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Webpage</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://use.typekit.net/uno2rjg.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+
+<body>
+
+    <div id="login-container" class="login-container">
+        <form id="login-form" class="login-form">
+            <input type="text" id="login-username" placeholder="Username" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <button type="button" onclick="process_login()">Login</button>
+            <p id="create-account-btn" class="text-btn" onclick="displayRegister()">Create a new account</p>
+        </form>
+        <div id="login-error" style="color:red; display:none;"></div>
+    </div>
+    <div id="register-container" class="login-container">
+        <form id="register-form" class="login-form">
+            <input type="text" id="register-username" placeholder="Username" required>
+            <input type="password" id="register-password" placeholder="Password" required>
+            <button type="button" onclick="process_register()">Register</button>
+            <p id="already-account-btn" class="text-btn" onclick="displayLogin()">Already have an account</p>
+        </form>
+        <div id="login-error" style="color:red; display:none;"></div>
+    </div>
+    <div id="main-app">
+        <nav>
+            <div id="left-nav">
+                <a id="spinfolio-nav" onclick="navHome()">Spinfolio</a>
+            </div>
+            <div id="right-nav">
+                
+                <a onclick="navCollection()">My Collection</a>
+                <a onclick="navWishlist()">Wishlist</a>
+                <a onclick="navProfile()">Profile</a>
+            </div>
+        </nav>
+        <section id="add-record-section">
+            <h1>Add Record</h1>
+            <div id="add-vinyl-div">
+                <input placeholder="Barcode" id="barcode-input">
+                <button id="submit-barcode-btn" onclick="submitBarcode()">Submit</button>
+                <h2>Or</h2>
+                <input placeholder="Album" id="album-input"> <input placeholder="Artist" id="artist-input">
+                <button id="submit-album-artist-btn" onclick="submitAlbumArtist()">Submit</button>
+            </div>
+        </section>
+        <section id="collection-section">
+            <div id="collection-section-header">
+                <h1>My Collection</h1>
+                <button id="add-record-btn" onclick="displayAddRecordModal()">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Add
+                </button>
+            </div>
+            <div id="collection-div"></div>
+        </section>
+        <section id="wishlist-section">
+            <div id="wishlist-header">
+                <h1>My Wishlist</h1>
+                    <button id="add-wishlist-btn" onclick="displayAddRecordModal()">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        Add
+                    </button>
+            </div>
+            <div id="wishlist-div"></div>
+        </section>
+        <section id="overlay"></section>
+    </div>
+</body>
+<script src="app.js"></script>
+<script src="sessions.js"></script>
+
+</html>
