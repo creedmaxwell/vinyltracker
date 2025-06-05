@@ -67,15 +67,15 @@ class VinylDB:
         self.conn.row_factory = dict_factory
         self.cursor = self.conn.cursor()
 
-    def saveVinylRecord(self, url, barcode, album, artist, user_id):
-        data = [url, barcode, album, artist, user_id]
-        cmd = "INSERT INTO records (url, barcode, album, artist, user_id) VALUES (?, ?, ?, ?, ?)"
+    def saveVinylRecord(self, url, album, artist, cover_image, user_id):
+        data = [url, album, artist, cover_image, user_id]
+        cmd = "INSERT INTO records (url, album, artist, cover_image, user_id) VALUES (?, ?, ?, ?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
-    def saveWishlistRecord(self, url, barcode, album, artist, user_id):
-        data = [url, barcode, album, artist, user_id]
-        cmd = "INSERT INTO wishlist (url, barcode, album, artist, user_id) VALUES (?, ?, ?, ?, ?)"
+    def saveWishlistRecord(self, url, album, artist, cover_image, user_id):
+        data = [url, album, artist, cover_image, user_id]
+        cmd = "INSERT INTO wishlist (url, album, artist, cover_image, user_id) VALUES (?, ?, ?, ?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
@@ -101,20 +101,6 @@ class VinylDB:
     def readWishlistRecordArtist(self, artist, user_id):
         data = [artist, user_id]
         cmd = "SELECT * FROM wishlist WHERE ( artist = ? AND user_id = ? )"
-        self.cursor.execute(cmd, data)
-        vinyl = self.cursor.fetchall()
-        return vinyl
-
-    def readVinylRecordBarcode(self, barcode, user_id):
-        data = [barcode, user_id]
-        cmd = "SELECT * FROM records WHERE ( barcode = ? AND user_id = ? )"
-        self.cursor.execute(cmd, data)
-        vinyl = self.cursor.fetchall()
-        return vinyl
-    
-    def readWishlistRecordBarcode(self, barcode, user_id):
-        data = [barcode, user_id]
-        cmd = "SELECT * FROM wishlist WHERE ( barcode = ? AND user_id = ? )"
         self.cursor.execute(cmd, data)
         vinyl = self.cursor.fetchall()
         return vinyl
@@ -152,3 +138,9 @@ class VinylDB:
        cmd = "UPDATE records SET barcode = ? WHERE id = ?"
        self.cursor.execute(cmd, data)
        self.conn.commit()
+
+    def updateCoverImage(self, url, user_id, cover_image):
+        data = [cover_image, url, user_id]
+        cmd = "UPDATE records SET cover_image = ? WHERE url = ? AND user_id = ?"
+        self.cursor.execute(cmd, data)
+        self.conn.commit()

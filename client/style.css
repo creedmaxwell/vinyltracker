@@ -58,6 +58,7 @@ nav a:hover{
     justify-content: center;
     align-items: center;
     overflow-y: auto;
+    margin: 0;
 }
 
 .login-container {
@@ -127,13 +128,26 @@ section{
     flex-wrap: wrap;
     padding: 10px;
     display: none;
-}
-
-#collection-section{
     max-width: 1100px;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
+}
+
+.search-bar{
+    width: 100%;
+    height: 35px;
+    border-radius: 10px;
+    padding-left: 30px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    background-color: #e2e2e2;
+    border: 0;
+    background-image: url(https://static-00.iconduck.com/assets.00/search-icon-2048x2048-cmujl7en.png);
+    background-position: 10px 12px;
+    background-size: 10px;
+    background-repeat: no-repeat;
 }
 
 #collection-div{
@@ -144,7 +158,7 @@ section{
     margin: 0;
 }
 
-#collection-section-header{
+.section-header{
     display: flex;
     width: 100%;
     flex-direction: row;
@@ -421,7 +435,7 @@ ul li:last-child {
     padding: 10px;
 }
 
-#add-record-btn {
+.add-btn {
     background-color: white;
     border-radius: 10px;
     display: flex;
@@ -429,11 +443,11 @@ ul li:last-child {
     justify-content: center;
 }
 
-#add-record-btn span{
+.add-btn span{
     margin-right: 5px;
 }
 
-#add-record-btn:hover{
+.add-btn:hover{
     cursor: pointer;
     background-color: #e9e9e9;
 }
@@ -452,6 +466,44 @@ ul li:last-child {
 
 .result-div .right-col{
     align-items: center;
+}
+
+.result-image-wrapper img,
+.result-cover-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+.result-image-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0 10px 0 0;
+}
+.result-div .arrows-wrapper {
+    opacity: 0;
+    transition: opacity 0.3s;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+.result-image-wrapper:hover .arrows-wrapper {
+    opacity: 1;
+    pointer-events: auto;
+}
+.result-div .image-stepper {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    margin-top: 5px;
+    gap: 6px;
 }
 
 @media (max-width: 768px){

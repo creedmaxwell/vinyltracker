@@ -10,20 +10,8 @@ async function displayUserCollection(){
     const data = await response.json()
     console.log(data)
     for (const entry of data){
-        await fetchBarcode(entry.barcode, "barcode", "collection", entry.url)
+        buildRelease(entry.artist, entry.album, entry.cover_image, entry.url, "collection")
     }
-    /*
-    .then(response => response.json())
-    .then(function (data) {
-        console.log(data)
-        data.forEach(entry => {
-            fetchBarcode(entry.barcode, "barcode", entry.url)
-        })
-    })
-    .catch(error =>{
-        console.error("Error fetching collection:", error)
-    })
-    */
 }
 
 async function displayUserWishlist(){
@@ -36,16 +24,20 @@ async function displayUserWishlist(){
     const data = await response.json()
     console.log(data)
     for (const entry of data){
-        await fetchBarcode(entry.barcode, "barcode", "wishlist", entry.url)
+        buildRelease(entry.artist, entry.album, entry.cover_image, entry.url, "wishlist")
     }
 }
 
 // submit
-let resourceURL = ""
+
 let token = 'MWfUKFbFxCTMlxIxSXnEUIxGpNrNSJoMlHutkiIv'
+/*
+let resourceURL = ""
 let artistName = '' 
 let albumName = ''
 let releaseBarcode = ''
+let coverImageUrl = ''
+*/
 
 function submitBarcode(){
     let barcode = document.querySelector("#barcode-input").value.replaceAll(' ', '')
@@ -54,19 +46,10 @@ function submitBarcode(){
     let existingRecord = document.getElementById(barcode.replaceAll(' ', ''))
     if (existingRecord != null){
         if (confirm("You already have this barcode recorded, record again?")) {
-            fetchBarcode(barcode, "barcode", "collection").then(success => {
-                if (success){
-                    postRecord(barcode)
-                }
-            })
+            fetchBarcode(barcode, "barcode", "collection")
         }
     } else {
-        fetchBarcode(barcode, "barcode", "collection").then(success => {
-            if (success){
-                console.log("Fetch successful")
-                postRecord(barcode)
-            }
-        })
+        fetchBarcode(barcode, "barcode", "collection")
     }
 }
 
@@ -77,16 +60,10 @@ function submitAlbumArtist(){
     document.querySelector("#album-input").value = ''
     
     let title = albumInput + '&artist=' + artistInput
-    // encoding twice screws it up
+
     console.log(title)
 
-    fetchBarcode({release_title: albumInput, artist: artistInput}, "release_title", "collection").then(success => {
-        if (success){
-            console.log("Fetch successful")
-            console.log(releaseBarcode)
-            postRecord(releaseBarcode)
-        }
-    })
+    fetchBarcode({release_title: albumInput, artist: artistInput}, "release_title", "collection")
 }
 
 function submitBarcodeWishlist(){
@@ -96,19 +73,10 @@ function submitBarcodeWishlist(){
     let existingRecord = document.getElementById(barcode.replaceAll(' ', ''))
     if (existingRecord != null){
         if (confirm("You already have this barcode recorded, record again?")) {
-            fetchBarcode(barcode, "barcode", "wishlist").then(success => {
-                if (success){
-                    postWishlist(barcode)
-                }
-            })
+            fetchBarcode(barcode, "barcode", "wishlist")
         }
     } else {
-        fetchBarcode(barcode, "barcode", "wishlist").then(success => {
-            if (success){
-                console.log("Fetch successful")
-                postWishlist(barcode)
-            }
-        })
+        fetchBarcode(barcode, "barcode", "wishlist")
     }
 }
 
@@ -122,23 +90,17 @@ function submitAlbumArtistWishlist(){
     // encoding twice screws it up
     console.log(title)
 
-    fetchBarcode({release_title: albumInput, artist: artistInput}, "release_title", "wishlist").then(success => {
-        if (success){
-            console.log("Fetch successful")
-            console.log(releaseBarcode)
-            postWishlist(releaseBarcode)
-        }
-    })
+    fetchBarcode({release_title: albumInput, artist: artistInput}, "release_title", "wishlist")
 }
 
-function postRecord(barcode){
+function postRecord(resourceURL, albumName, artistName, coverImageUrl){
     fetch('http://localhost:8080/vinyl', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': authorizationHeader()
         },
-        body: `url=${encodeURIComponent(resourceURL)}&barcode=${encodeURIComponent(barcode)}&album=${encodeURIComponent(albumName)}&artist=${encodeURIComponent(artistName)}`
+        body: `url=${encodeURIComponent(resourceURL)}&album=${encodeURIComponent(albumName)}&artist=${encodeURIComponent(artistName)}&cover_image=${encodeURIComponent(coverImageUrl)}`
     })
     .then(response => {
         if (response.status === 201){
@@ -153,14 +115,14 @@ function postRecord(barcode){
     })
 }
 
-function postWishlist(barcode){
+function postWishlist(resourceURL, albumName, artistName, coverImageUrl){
     fetch('http://localhost:8080/wishlist', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': authorizationHeader()
         },
-        body: `url=${encodeURIComponent(resourceURL)}&barcode=${encodeURIComponent(barcode)}&album=${encodeURIComponent(albumName)}&artist=${encodeURIComponent(artistName)}`
+        body: `url=${encodeURIComponent(resourceURL)}&album=${encodeURIComponent(albumName)}&artist=${encodeURIComponent(artistName)}&cover_image=${encodeURIComponent(coverImageUrl)}`
     })
     .then(response => {
         if (response.status === 201){
@@ -176,192 +138,232 @@ function postWishlist(barcode){
 }
 
 
-function fetchBarcode(barcode, search_type, section, url = null){
+function fetchBarcode(barcode, search_type, section){
     let collection = document.querySelector("#" + section + "-div")
 
-    if (url) {
-        return fetch(`${url}?token=${token}`)
-        .then(response => response.json())
-        .then(release => {
-            console.log("Fetch with url")
-            console.log(release)
-            let div = document.createElement("div")
-            let title = document.createElement("h2")
-            let artist = document.createElement("p")
-            let cover = document.createElement("img")
-
-            artistName = release.artists[0].name
-            albumName = release.title
-
-            let scannedIdentifier = release.identifiers.find(id => id.description && id.description.toLowerCase() === 'scanned')
-
-            if (scannedIdentifier) {
-                releaseBarcode = scannedIdentifier.value
-            } else if (release.identifiers.length > 0) {
-                releaseBarcode = release.identifiers[0].value
-            } else {
-                releaseBarcode = release.identifiers[1].value
-            }
-
-            resourceURL = release.resource_url
-
-            div.className = "release-div"
-            //div.id = release.title.replaceAll(' ', '')
-            div.id = resourceURL.split("/").pop()
-            if (section === "wishlist"){
-                div.onclick = function() { displayAlbum.call(this, true)}
-            } else {
-                div.onclick = displayAlbum
-            }
-            title.innerHTML = albumName || release.title
-            artist.innerHTML = artistName || ""
-            cover.src = release.images[0].uri
-
-            div.appendChild(cover)
-            div.appendChild(title)
-            div.appendChild(artist)
-            collection.appendChild(div)
-
-            return true
-
-        })
-        .catch(err =>{
-            //collection.innerHTML = "Error fetching data."
-            console.error(err)
-            return false
-        })
-    } else if (url == null) {
-        let query = ""
-        if (typeof barcode === "object") {
-            query = Object.entries(barcode)
-                .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-                .join("&")
-        } else {
-            query = `${search_type}=${encodeURIComponent(barcode)}`
-        }
-        return fetch(`https://api.discogs.com/database/search?${query}&type=${encodeURIComponent('release')}&token=${token}`)
+    let query = ""
+    if (typeof barcode === "object") {
+        query = Object.entries(barcode)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join("&")
+    } else {
+        query = `${search_type}=${encodeURIComponent(barcode)}`
+    }
+    return fetch(`https://api.discogs.com/database/search?${query}&type=${encodeURIComponent('release')}&token=${token}`)
         // add type to search 
-            .then(response => response.json())
-            .then(data => {
-                if (data.results && data.results.length > 0) {
-                    return new Promise((resolve) => {
-                        // confirm correct album
-                        let resultsPopup = document.createElement("div")
-                        resultsPopup.className = "results-popup"
-                        data.results.forEach((result, idx) => {
-                            let resultDiv = document.createElement("div")
-                            resultDiv.className = "result-div"
-                            let leftCol = document.createElement("div")
-                            leftCol.className = "left-col"
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                return new Promise((resolve) => {
+                    // confirm correct album -- results popup
+                    let resultsPopup = document.createElement("div")
+                    resultsPopup.className = "results-popup"
+                    data.results.forEach((result, idx) => {
+                        let resultDiv = document.createElement("div")
+                        resultDiv.className = "result-div"
+                        let leftCol = document.createElement("div")
+                        leftCol.className = "left-col"
 
-                            let title = document.createElement("h2")
-                            let artist = document.createElement("p")
-                            let cover = document.createElement("img")
+                        // images
+                        let imageWrapper = document.createElement("div")
+                        imageWrapper.className = "image-wrapper result-image-wrapper"
 
-                            const titleParts = result.title.split(" - ")
-                            artistName = titleParts[0]
-                            albumName = titleParts[1]
+                        let images = []
+                        let imagesAlt = []
+                        if (result.images && result.images.length > 0) {
+                            images = result.images.map(imgObj => imgObj.uri)
+                            imagesAlt = result.images.map(imgObj => imgObj.type)
+                        } else if (result.cover_image) {
+                            images = [result.cover_image]
+                            imagesAlt = ["cover"]
+                        }
 
-                            title.innerHTML = albumName || result.title
-                            artist.innerHTML = artistName || ""
-                            cover.src = result.cover_image
+                        let currentImageIndex = 0
 
-                            leftCol.appendChild(cover)
-                            leftCol.appendChild(title)
-                            leftCol.appendChild(artist)
+                        let cover = document.createElement("img")
+                        cover.className = "result-cover-image"
+                        cover.src = images[currentImageIndex]
+                        cover.alt = imagesAlt[currentImageIndex]
 
-                            // format
-                            let formatP = document.createElement("p")
-                            formatP.innerHTML = "Format: "
+                        // Arrows
+                        let arrowsWrapper = document.createElement("div")
+                        arrowsWrapper.className = "arrows-wrapper"
 
-                            if (result.formats) {
-                                formatP.innerHTML += result.formats[0].name + " - "
-                                result.formats[0].descriptions.forEach(description => {
-                                    formatP.innerHTML += description + " - "
-                                })
-                                if (result.formats[0].text) {
-                                    formatP.innerHTML += result.formats[0].text
-                                }
-                            } else if (result.format) {
-                                result.format.forEach(description => {
-                                    formatP.innerHTML += description + " - "
-                                })
+                        let arrowRight = document.createElement("span")
+                        arrowRight.className = "material-symbols-outlined"
+                        arrowRight.innerHTML = "chevron_right"
+
+                        let arrowLeft = document.createElement("span")
+                        arrowLeft.className = "material-symbols-outlined"
+                        arrowLeft.innerHTML = "chevron_left"
+
+                        arrowsWrapper.appendChild(arrowLeft)
+                        arrowsWrapper.appendChild(arrowRight)
+
+                        // Stepper dots
+                        let stepper = document.createElement("div")
+                        stepper.className = "image-stepper"
+                        images.forEach((img, i) => {
+                            let dot = document.createElement("span")
+                            dot.className = "step-dot" + (i === currentImageIndex ? " active" : "")
+                            dot.onclick = function () {
+                                currentImageIndex = i
+                                cover.src = images[currentImageIndex]
+                                cover.alt = imagesAlt[currentImageIndex]
+                                updateStepper()
                             }
-
-                            formatP.innerHTML = formatP.innerHTML.replace(/ - $/, '')
-
-                            leftCol.appendChild(formatP)
-                            resultDiv.appendChild(leftCol)
-
-                            // yes button
-                            let rightCol = document.createElement("div")
-                            rightCol.className = "right-col"
-                            let selectBtn = document.createElement("button")
-                            selectBtn.innerHTML = "Select"
-                            selectBtn.onclick = function () {
-                                handleResultSelection(idx)
-                            }
-
-                            rightCol.appendChild(selectBtn)
-                            resultDiv.appendChild(rightCol)
-
-                            resultsPopup.appendChild(resultDiv)
+                            stepper.appendChild(dot)
                         })
 
-                        let overlay = document.getElementById("overlay")
-                        overlay.appendChild(resultsPopup)
-                        overlay.style.display = "block"
-
-                        function handleResultSelection(selectedIdx) {
-                            const release = data.results[selectedIdx]
-
-                            let div = document.createElement("div")
-                            let title = document.createElement("h2")
-                            let artist = document.createElement("p")
-                            let cover = document.createElement("img")
-
-                            console.log(release)
-
-                            const titleParts = release.title.split(" - ")
-                            artistName = titleParts[0]
-                            albumName = titleParts[1]
-
-                            resourceURL = release.resource_url
-
-                            div.className = "release-div"
-                            //div.id = release.title.replaceAll(' ', '')
-                            div.id = resourceURL.split('/').pop()
-                            if (section === "wishlist"){
-                                div.onclick = function() { displayAlbum.call(this, true)}
-                            } else {
-                                div.onclick = displayAlbum
-                            }
-                            title.innerHTML = albumName || release.title
-                            artist.innerHTML = artistName || ""
-                            cover.src = release.cover_image
-
-                            div.appendChild(cover)
-                            div.appendChild(title)
-                            div.appendChild(artist)
-                            collection.appendChild(div)
-
-                            resultsPopup.remove()
-                            overlay.style.display = "none"
-
-                            resolve(true)
+                        function updateStepper() {
+                            Array.from(stepper.children).forEach((dot, i) => {
+                                dot.className = "step-dot" + (i === currentImageIndex ? " active" : "")
+                            })
                         }
+
+                        // Arrow navigation
+                        arrowRight.onclick = function () {
+                            currentImageIndex = (currentImageIndex + 1) % images.length
+                            cover.src = images[currentImageIndex]
+                            cover.alt = imagesAlt[currentImageIndex]
+                            updateStepper()
+                        }
+                        arrowLeft.onclick = function () {
+                            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length
+                            cover.src = images[currentImageIndex]
+                            cover.alt = imagesAlt[currentImageIndex]
+                            updateStepper()
+                        }
+
+                        imageWrapper.appendChild(cover)
+                        imageWrapper.appendChild(arrowsWrapper)
+                        imageWrapper.appendChild(stepper)
+
+                        // Album info
+                        let title = document.createElement("h2")
+                        let artist = document.createElement("p")
+                        //let cover = document.createElement("img")
+
+                        const titleParts = result.title.split(" - ")
+                        artistName = titleParts[0]
+                        albumName = titleParts[1]
+                        coverImageUrl = result.cover_image
+
+                        title.innerHTML = albumName || result.title
+                        artist.innerHTML = artistName || ""
+                        //cover.src = result.cover_image
+
+                        leftCol.appendChild(cover)
+                        leftCol.appendChild(title)
+                        leftCol.appendChild(artist)
+
+                        // format
+                        let formatP = document.createElement("p")
+                        formatP.innerHTML = "Format: "
+
+                        if (result.formats) {
+                            formatP.innerHTML += result.formats[0].name + " - "
+                            result.formats[0].descriptions.forEach(description => {
+                                formatP.innerHTML += description + " - "
+                            })
+                            if (result.formats[0].text) {
+                                formatP.innerHTML += result.formats[0].text
+                            }
+                        } else if (result.format) {
+                            result.format.forEach(description => {
+                                formatP.innerHTML += description + " - "
+                            })
+                        }
+
+                        formatP.innerHTML = formatP.innerHTML.replace(/ - $/, '')
+
+                        leftCol.appendChild(formatP)
+                        resultDiv.appendChild(leftCol)
+
+                        // sselect button
+                        let rightCol = document.createElement("div")
+                        rightCol.className = "right-col"
+                        let selectBtn = document.createElement("button")
+                        selectBtn.innerHTML = "Select"
+                        selectBtn.onclick = function () {
+                            handleResultSelection(idx)
+                        }
+
+                        rightCol.appendChild(selectBtn)
+                        resultDiv.appendChild(rightCol)
+
+                        resultsPopup.appendChild(resultDiv)
                     })
-                } else {
-                    collection.innerHTML = "No results found.";
-                    return false
-                }
-            })
-            .catch(err => {
-                collection.innerText = "Error fetching data.";
-                console.error(err);
+
+                    let overlay = document.getElementById("overlay")
+                    overlay.appendChild(resultsPopup)
+                    overlay.style.display = "block"
+
+                    async function handleResultSelection(selectedIdx) {
+                        const release = data.results[selectedIdx]
+
+                        console.log(release)
+
+                        const titleParts = release.title.split(" - ")
+                        let artistName = titleParts[0]
+                        let albumName = titleParts[1]
+                        let coverImageUrl = release.cover_image
+                        let resourceURL = release.resource_url
+
+                        // pass in to function
+                        buildRelease(artistName, albumName, coverImageUrl, resourceURL, section)
+
+                        // post to database
+
+                        if (section === "wishlist") {
+                            postWishlist(resourceURL, albumName, artistName, coverImageUrl)
+                        } else if (section === "collection") {
+                            postRecord(resourceURL, albumName, artistName, coverImageUrl)
+                        }
+
+                        resultsPopup.remove()
+                        overlay.style.display = "none"
+
+                        resolve(true)
+                    }
+                })
+            } else {
+                collection.innerHTML = "No results found.";
                 return false
-            });
+            }
+        })
+        .catch(err => {
+            collection.innerText = "Error fetching data.";
+            console.error(err);
+            return false
+        });
+
+}
+
+function buildRelease(artist, album, cover_image, url, section){
+    let collection = document.querySelector("#" + section + "-div")
+    let div = document.createElement("div")
+    let title = document.createElement("h2")
+    let artistP = document.createElement("p")
+    let cover = document.createElement("img")
+
+    div.className = "release-div"
+    div.id = url.split('/').pop()
+
+    if (section === "wishlist") {
+        div.onclick = function () { displayAlbum.call(this, true) }
+    } else {
+        div.onclick = function () { displayAlbum.call(this, false) }
     }
+
+    title.innerHTML = album || ""
+    artistP.innerHTML = artist || ""
+    cover.src = cover_image
+
+    div.appendChild(cover)
+    div.appendChild(title)
+    div.appendChild(artistP)
+    collection.appendChild(div)
 }
 
 let submitBarcodeBtn = document.querySelector("#submit-barcode-btn")
@@ -628,3 +630,46 @@ function navWishlist(){
 }
 
 clearSections()
+
+// search
+function searchCollection(){
+    const searchValue = document.getElementById("collection-search-input").value.toLowerCase()
+    const releaseDivs = document.querySelectorAll("#collection-div .release-div")
+
+    releaseDivs.forEach(div => {
+        const album = div.querySelector("h2")?.textContent.toLowerCase() || ""
+        const artist = div.querySelector("p")?.textContent.toLowerCase() || ""
+        if (album.includes(searchValue) || artist.includes(searchValue)) {
+            div.style.display = ""
+        } else {
+            div.style.display = "none"
+        }
+    })
+}
+
+// sort
+function sortReleaseDivs(by = "album"){
+    const collection = document.querySelector("#collection-div")
+    const releaseDivs = Array.from(collection.querySelectorAll(".release-div"))
+
+    releaseDivs.sort((a, b) => {
+        let aText, bText
+        if (by === "artist") {
+            aText = a.querySelector("p")?.textContent?.toLowerCase() || ""
+            bText = b.querySelector("p")?.textContent?.toLowerCase() || ""
+        } else { // default to album
+            aText = a.querySelector("h2")?.textContent?.toLowerCase() || ""
+            bText = b.querySelector("h2")?.textContent?.toLowerCase() || ""
+        }
+        return aText.localeCompare(bText)
+    })
+
+    releaseDivs.forEach(div => collection.appendChild(div))
+}
+
+document.getElementById("sort-dropdown").onchange = function() {
+    const value = this.value
+    if (value === "album" || value === "artist") {
+        sortReleaseDivs(value)
+    } 
+}

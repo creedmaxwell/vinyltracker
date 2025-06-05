@@ -53,19 +53,27 @@
             </div>
         </section>
         <section id="collection-section">
-            <div id="collection-section-header">
+            <div class="section-header">
                 <h1>My Collection</h1>
-                <button id="add-record-btn" onclick="displayAddRecordModal()">
+                <button id="add-record-btn" class="add-btn" onclick="displayAddRecordModal()">
                     <span class="material-symbols-outlined">add_circle</span>
                     Add
                 </button>
             </div>
+            <input type="text" id="collection-search-input" class="search-bar" oninput="searchCollection()" placeholder="Search your collection">
+            <label>
+                <select id="sort-dropdown">
+                    <option>Sort by:</option>
+                    <option value="album">Album</option>
+                    <option value="artist">Artist</option>
+                </select>
+            </label>
             <div id="collection-div"></div>
         </section>
         <section id="wishlist-section">
-            <div id="wishlist-header">
+            <div class="section-header">
                 <h1>My Wishlist</h1>
-                    <button id="add-wishlist-btn" onclick="displayAddRecordModal()">
+                    <button id="add-wishlist-btn" class="add-btn" onclick="displayAddRecordModal()">
                         <span class="material-symbols-outlined">add_circle</span>
                         Add
                     </button>

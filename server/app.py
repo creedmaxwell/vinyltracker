@@ -106,12 +106,12 @@ def add_new_vinyl():
     db = VinylDB("trackerdb.db")
     print("The form data is: ", request.form)
     url = request.form["url"]
-    barcode = request.form["barcode"]
     album = request.form["album"]
     artist = request.form["artist"]
+    cover_image = request.form["cover_image"]
     user_id = g.session_data["user_id"]
 
-    db.saveVinylRecord(url, barcode, album, artist, user_id)
+    db.saveVinylRecord(url, album, artist, cover_image, user_id)
     return "Created", 201, {"Access-Control-Allow-Origin": "*"}
 
 @app.route('/vinyl', methods=["DELETE"])
@@ -161,12 +161,12 @@ def add_new_wishlist():
     db = VinylDB("trackerdb.db")
     print("The form data is: ", request.form)
     url = request.form["url"]
-    barcode = request.form["barcode"]
     album = request.form["album"]
     artist = request.form["artist"]
+    cover_image = request.form["cover_image"]
     user_id = g.session_data["user_id"]
 
-    db.saveWishlistRecord(url, barcode, album, artist, user_id)
+    db.saveWishlistRecord(url, album, artist, cover_image, user_id)
     return "Created", 201, {"Access-Control-Allow-Origin": "*"}
 
 @app.route('/wishlist', methods=["DELETE"])
