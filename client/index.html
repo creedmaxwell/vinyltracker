@@ -40,6 +40,8 @@
                 <a onclick="navCollection()">My Collection</a>
                 <a onclick="navWishlist()">Wishlist</a>
                 <a onclick="navProfile()">Profile</a>
+                <a onclick="navChat()">Agent Chat</a>
+                <a href="javascript:void(0)" onclick="openSpotifyLogin()"><button>Connect Spotify</button></a>
             </div>
         </nav>
         <section id="add-record-section">
@@ -50,6 +52,9 @@
                 <h2>Or</h2>
                 <input placeholder="Album" id="album-input"> <input placeholder="Artist" id="artist-input">
                 <button id="submit-album-artist-btn" onclick="submitAlbumArtist()">Submit</button>
+                <h2>Or</h2>
+                <input placeholder="Search" id="search-input">
+                <button id="submit-search-btn" onclick="submitSearch()">Submit</button>
             </div>
         </section>
         <section id="collection-section">
@@ -61,13 +66,26 @@
                 </button>
             </div>
             <input type="text" id="collection-search-input" class="search-bar" oninput="searchCollection()" placeholder="Search your collection">
-            <label>
-                <select id="sort-dropdown">
-                    <option>Sort by:</option>
-                    <option value="album">Album</option>
-                    <option value="artist">Artist</option>
-                </select>
-            </label>
+            <div class="section-header clickable-header">
+                <h2 onclick="filterByFormat('')">All</h2>
+                <h2 onclick="filterByFormat('vinyl')">Vinyl</h2>
+                <h2 onclick="filterByFormat('cd')">CDs</h2>
+                <h2 onclick="filterByFormat('cassette')">Cassettes</h2>
+            </div>
+            <div class="section-header">
+                <label>
+                    <select id="sort-dropdown">
+                        <option>Sort by:</option>
+                        <option value="album">Album</option>
+                        <option value="artist">Artist</option>
+                    </select>
+                </label>
+                <label>
+                    <select id="genre-dropdown">
+                        <option>Genre:</option>
+                    </select>
+                </label>
+            </div>
             <div id="collection-div"></div>
         </section>
         <section id="wishlist-section">
@@ -79,6 +97,16 @@
                     </button>
             </div>
             <div id="wishlist-div"></div>
+        </section>
+        <section id="chat-section">
+            <div class="section-header">
+                <h1>Agent Chat</h1>
+            </div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <div id="chat-input-container">
+                <input id="chat-input" class="chat-input" placeholder="Ask about your collection">
+                <button id="chat-submit-btn" class="chat-submit-btn">Send</button>
+            </div>
         </section>
         <section id="overlay"></section>
     </div>

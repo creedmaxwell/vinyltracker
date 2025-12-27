@@ -1,0 +1,10 @@
+flask
+smolagents
+openai
+sentence_transformers
+bs4
+ddgs
+chromadb
+dotenv
+passlib
+"bcrypt==4.0.1"

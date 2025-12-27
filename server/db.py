@@ -67,15 +67,15 @@ class VinylDB:
         self.conn.row_factory = dict_factory
         self.cursor = self.conn.cursor()
 
-    def saveVinylRecord(self, url, album, artist, cover_image, user_id):
-        data = [url, album, artist, cover_image, user_id]
-        cmd = "INSERT INTO records (url, album, artist, cover_image, user_id) VALUES (?, ?, ?, ?, ?)"
+    def saveVinylRecord(self, url, album, artist, cover_image, genre, format, user_id):
+        data = [url, album, artist, cover_image, genre, format, user_id]
+        cmd = "INSERT INTO records (url, album, artist, cover_image, genre, format, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
-    def saveWishlistRecord(self, url, album, artist, cover_image, user_id):
-        data = [url, album, artist, cover_image, user_id]
-        cmd = "INSERT INTO wishlist (url, album, artist, cover_image, user_id) VALUES (?, ?, ?, ?, ?)"
+    def saveWishlistRecord(self, url, album, artist, cover_image, genre, format, user_id):
+        data = [url, album, artist, cover_image, genre, format, user_id]
+        cmd = "INSERT INTO wishlist (url, album, artist, cover_image, genre, format, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
         self.cursor.execute(cmd, data)
         self.conn.commit()
 
